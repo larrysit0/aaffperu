@@ -176,7 +176,7 @@ def webhook():
             chat_id = message['chat']['id']
             text = message.get('text', '')
             if text == 'MIREGISTRO':
-                webapp_url = "https://alarma-production.up.railway.app"
+                webapp_url = "https://aaffperu-production.up.railway.app"
                 payload = {
                     "chat_id": chat_id,
                     "text": "Presiona el botón para obtener tu ID de Telegram.",
