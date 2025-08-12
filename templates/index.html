@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Botón de Emergencia</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+</head>
+<body>
+  <div class="container">
+    <h1>🚨 Botón de Emergencia</h1>
+
+
+
+    <p>Describe brevemente la emergencia:</p>
+
+    <textarea id="descripcion" placeholder="Escribe tu mensaje..." maxlength="300"></textarea>
+
+    <div class="toggle-container">
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleRealTime" />
+        <span class="slider"></span>
+      </label>
+      <p>Usar ubicación en tiempo real</p>
+    </div>
+
+    <button id="btnEmergencia" class="btn red" disabled>🚨 Enviar Alerta Roja</button>
+
+    <p class="status" id="statusMsg">⏳ Esperando acción del usuario...</p>
+  </div>
+</body>
+</html>
