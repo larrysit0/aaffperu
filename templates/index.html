@@ -4,36 +4,44 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Botón de Emergencia</title>
-
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
-
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
+  <meta name="telegram-web-app" content="always-expand">
+  <style>
+    /* Estilos adicionales para Telegram WebApp */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--tg-theme-bg-color, #ffffff);
+      color: var(--tg-theme-text-color, #000000);
+    }
+    .container {
+      max-width: 100%;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .id-display {
+      background: var(--tg-theme-secondary-bg-color, #f1f1f1);
+      border: 2px solid var(--tg-theme-button-color, #0088cc);
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      font-family: monospace;
+      color: var(--tg-theme-button-color, #0088cc);
+    }
+    .btn.blue {
+      background-color: var(--tg-theme-button-color, #0088cc);
+      color: var(--tg-theme-button-text-color, #ffffff);
+    }
+  </style>
   <script src="{{ url_for('static', filename='script.js') }}" defer></script>
 </head>
 <body>
   <div class="container">
     <h1>🚨 Botón de Emergencia</h1>
-
-
-
-    <p>Describe brevemente la emergencia:</p>
-
-    <textarea id="descripcion" placeholder="Escribe tu mensaje..." maxlength="300"></textarea>
-
-    <div class="toggle-container">
-      <label class="toggle-switch">
-        <input type="checkbox" id="toggleRealTime" />
-        <span class="slider"></span>
-      </label>
-      <p>Usar ubicación en tiempo real</p>
-    </div>
-
-    <button id="btnEmergencia" class="btn red" disabled>🚨 Enviar Alerta Roja</button>
-
-    <p class="status" id="statusMsg">⏳ Esperando acción del usuario...</p>
-  </div>
-</body>
-</html>
+    <p>Describe
