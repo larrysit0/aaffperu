@@ -1,0 +1,50 @@
+
+{
+  "chat_id": "-1002735693923",
+  "miembros": [
+    {
+      "nombre": "Olinda Pinto",
+      "telefono": "+51991363320",
+      "direccion": "Av. Principal 101",
+      "alertas_activadas": true,
+      "geolocalizacion": {
+        "lat": -12.0464,
+        "lon": -77.0428
+      },
+      "telegram_id": 7851766215
+    },
+    {
+      "nombre": "Larry ortiz",
+      "telefono": "+51960661434",
+      "direccion": "Calle Secundaria 202",
+      "alertas_activadas": true,
+      "geolocalizacion": {
+        "lat": -12.0456,
+        "lon": -77.0333
+      },
+      "telegram_id": 1667177404
+    },
+    {
+      "nombre": "Jhonny firnandiz",
+      "telefono": "+51929145876",
+      "direccion": "Pasaje Mirador 303",
+      "alertas_activadas": true,
+      "geolocalizacion": {
+        "lat": -12.0470,
+        "lon": -77.0400
+      },
+      "telegram_id": 1579324364
+    },
+    {
+      "nombre": "Irene Fernandez",
+      "telefono": "+51980516446",
+      "direccion": "Jirón Paz 404",
+      "alertas_activadas": true,
+      "geolocalizacion": {
+        "lat": -12.0488,
+        "lon": -77.0381
+      },
+      "telegram_id": 1926559823
+    }
+  ]
+}
