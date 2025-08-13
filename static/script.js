@@ -1,10 +1,27 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const BACKEND_URL = "https://aaffperu-production.up.railway.app";
+    const BACKEND_URL = "https://[TU-NUEVA-URL-DE-RAILWAY]";
 
     console.log("✅ Script cargado. Backend URL:", BACKEND_URL);
 
+    // Configurar Telegram WebApp si está disponible
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+        // Establecer colores del tema
+        window.Telegram.WebApp.setHeaderColor('#dc3545');
+        window.Telegram.WebApp.setBackgroundColor('#ffffff');
+        console.log("✅ Telegram WebApp inicializado");
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const comunidadSeleccionada = urlParams.get('comunidad');
+    const modoRegistro = urlParams.get('modo') === 'registro';
+
+    // Si es modo registro, mostrar solo la funcionalidad de registro
+    if (modoRegistro) {
+        mostrarModoRegistro();
+        return;
+    }
 
     if (!comunidadSeleccionada) {
         alert("❌ No se especificó la comunidad en la URL.");
@@ -21,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusMsg = document.getElementById('statusMsg');
     const toggleRealTime = document.getElementById('toggleRealTime');
 
+    // Obtener datos del usuario
     const userIdFromUrl = urlParams.get('id');
     const userFirstNameFromUrl = urlParams.get('first_name');
 
@@ -110,12 +128,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!descripcion || !comunidadSeleccionada) {
             console.error("❌ Validación fallida: faltan datos necesarios (descripción o comunidad).");
-            alert("❌ Faltan datos necesarios");
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.showAlert("❌ Faltan datos necesarios");
+            } else {
+                alert("❌ Faltan datos necesarios");
+            }
             return;
         }
-        
-        // CORREGIDO: SE ELIMINÓ LA VALIDACIÓN DE currentUserMemberData
-        // Ahora se intenta obtener la ubicación de cualquier forma, sin importar si el usuario está en el JSON.
 
         boton.disabled = true;
         boton.textContent = "Enviando...";
@@ -138,7 +157,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 enviarAlerta(descripcion, latEnvio, lonEnvio, direccionEnvio, userData);
             }, () => {
                 console.error("❌ Error al obtener ubicación en tiempo real. Cayendo a ubicación registrada si existe.");
-                alert("❌ No se pudo obtener ubicación en tiempo real. Usando tu ubicación registrada.");
+                if (window.Telegram && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.showAlert("❌ No se pudo obtener ubicación en tiempo real. Usando tu ubicación registrada.");
+                } else {
+                    alert("❌ No se pudo obtener ubicación en tiempo real. Usando tu ubicación registrada.");
+                }
                 handleFallbackLocation(descripcion, userData, direccionEnvio);
             });
         } else {
@@ -159,7 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
             enviarAlerta(descripcion, latEnvio, lonEnvio, direccionEnvio, userData);
         } else {
             console.error("❌ Fallback: No se encontró ubicación válida (ni registrada ni en tiempo real).");
-            // Se envía la alarma con la ubicación disponible, incluso si es nula
             enviarAlerta(descripcion, latEnvio, lonEnvio, direccionEnvio, userData);
         }
     }
@@ -203,12 +225,26 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .then(data => {
                 console.log("✅ Respuesta del servidor (JSON):", data);
-                alert(data.status || "✅ Alerta enviada correctamente.");
+                const mensaje = data.status || "✅ Alerta enviada correctamente.";
+                
+                if (window.Telegram && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.showAlert(mensaje, () => {
+                        window.Telegram.WebApp.close();
+                    });
+                } else {
+                    alert(mensaje);
+                }
                 resetFormulario();
             })
             .catch(err => {
                 console.error("❌ Error en la llamada fetch:", err);
-                alert("❌ Error al enviar alerta. Consulta la consola para más detalles.");
+                const mensaje = "❌ Error al enviar alerta. Consulta la consola para más detalles.";
+                
+                if (window.Telegram && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.showAlert(mensaje);
+                } else {
+                    alert(mensaje);
+                }
                 resetFormulario();
             });
     }
@@ -219,5 +255,32 @@ document.addEventListener('DOMContentLoaded', () => {
         textarea.value = "";
         boton.classList.remove('enabled');
         updateStatusMessageBasedOnToggle();
+    }
+
+    // Función para modo registro
+    function mostrarModoRegistro() {
+        document.body.innerHTML = `
+            <div class="container">
+                <h1>📱 Registro de ID</h1>
+                <p>Tu ID de Telegram es:</p>
+                <div class="id-display" id="telegramId">Cargando...</div>
+                <button id="copiarId" class="btn blue">📋 Copiar ID</button>
+                <p class="status" id="statusMsgRegistro">Obteniendo tu ID...</p>
+            </div>
+        `;
+
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
+            const user = window.Telegram.WebApp.initDataUnsafe.user;
+            if (user) {
+                document.getElementById('telegramId').textContent = user.id;
+                document.getElementById('statusMsgRegistro').textContent = `ID obtenido para ${user.first_name}`;
+                
+                document.getElementById('copiarId').addEventListener('click', () => {
+                    navigator.clipboard.writeText(user.id.toString()).then(() => {
+                        document.getElementById('statusMsgRegistro').textContent = "✅ ID copiado al portapapeles";
+                    });
+                });
+            }
+        }
     }
 });
