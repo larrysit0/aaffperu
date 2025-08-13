@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const BACKEND_URL = "https://[TU-NUEVA-URL-DE-RAILWAY]";
+    const BACKEND_URL = "https://aaffperu-production.up.railway.app";
 
     console.log("✅ Script cargado. Backend URL:", BACKEND_URL);
 
