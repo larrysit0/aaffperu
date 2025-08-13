@@ -17,6 +17,9 @@ TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 
+# URL de tu webapp en Railway
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://tu-app.up.railway.app")
+
 if not TELEGRAM_BOT_TOKEN:
     print("--- ADVERTENCIA: TELEGRAM_BOT_TOKEN NO está configurado. ---")
 
@@ -40,6 +43,19 @@ def load_community_json(comunidad_nombre):
     except Exception as e:
         print(f"--- ERROR al cargar '{filepath}': {e} ---")
         return None
+
+def get_user_community(user_id):
+    """Busca en qué comunidad está registrado el usuario"""
+    for filename in os.listdir(COMUNIDADES_DIR):
+        if filename.endswith('.json'):
+            comunidad_nombre = filename[:-5]  # Remover .json
+            comunidad_info = load_community_json(comunidad_nombre)
+            if comunidad_info:
+                miembros = comunidad_info.get('miembros', [])
+                for miembro in miembros:
+                    if str(miembro.get('telegram_id')) == str(user_id):
+                        return comunidad_nombre
+    return None
 
 @app.route('/healthz')
 def health_check():
@@ -151,13 +167,16 @@ def make_phone_call(to_number):
     except Exception:
         raise
 
-def send_telegram_message(chat_id, text, parse_mode='HTML'):
+def send_telegram_message(chat_id, text, parse_mode='HTML', reply_markup=None):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {
         "chat_id": chat_id,
         "text": text,
         "parse_mode": parse_mode
     }
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
+    
     try:
         response = requests.post(url, json=payload)
         response.raise_for_status()
@@ -171,27 +190,86 @@ def send_telegram_message(chat_id, text, parse_mode='HTML'):
 def webhook():
     try:
         update = request.json
+        print(f"--- Webhook recibido: {update} ---")
+        
         message = update.get('message')
         if message:
             chat_id = message['chat']['id']
-            text = message.get('text', '')
-            if text == 'MIREGISTRO':
-                webapp_url = "https://aaffperu-production.up.railway.app"
-                payload = {
-                    "chat_id": chat_id,
-                    "text": "Presiona el botón para obtener tu ID de Telegram.",
-                    "reply_markup": {
+            user = message['from']
+            user_id = user['id']
+            user_name = user.get('first_name', 'Usuario')
+            text = message.get('text', '').lower().strip()
+            
+            print(f"--- Mensaje recibido de {user_name} (ID: {user_id}): {text} ---")
+            
+            # Comando SOS para abrir la webapp de emergencia
+            if text == 'sos':
+                print(f"--- Comando SOS detectado de usuario {user_id} ---")
+                
+                # Buscar la comunidad del usuario
+                comunidad = get_user_community(user_id)
+                
+                if comunidad:
+                    # Crear URL de la webapp con parámetros del usuario y comunidad
+                    webapp_url = f"{WEBAPP_URL}?comunidad={comunidad}&id={user_id}&first_name={user.get('first_name', '')}&last_name={user.get('last_name', '')}&username={user.get('username', '')}"
+                    
+                    reply_markup = {
                         "inline_keyboard": [
                             [
                                 {
-                                    "text": "Obtener mi ID",
+                                    "text": "🚨 ACTIVAR EMERGENCIA 🚨",
                                     "web_app": { "url": webapp_url }
                                 }
                             ]
                         ]
                     }
+                    
+                    mensaje = (
+                        f"🚨 <b>SISTEMA DE EMERGENCIA ACTIVADO</b> 🚨\n\n"
+                        f"Hola {user_name}, has activado el sistema de emergencia de la comunidad <b>{comunidad.upper()}</b>.\n\n"
+                        f"Presiona el botón de abajo para abrir la webapp de emergencia y describir la situación.\n\n"
+                        f"⚠️ <b>IMPORTANTE:</b> Solo usa este sistema en caso de emergencia real."
+                    )
+                    
+                    send_telegram_message(chat_id, mensaje, reply_markup=reply_markup)
+                    
+                else:
+                    # Usuario no registrado en ninguna comunidad
+                    mensaje = (
+                        f"❌ <b>Usuario no registrado</b>\n\n"
+                        f"Hola {user_name}, no estás registrado en ninguna comunidad.\n\n"
+                        f"Contacta al administrador de tu comunidad para ser registrado en el sistema de emergencias."
+                    )
+                    send_telegram_message(chat_id, mensaje)
+            
+            # Comando para obtener ID (como tenías antes)
+            elif text == 'miregistro':
+                webapp_url = f"{WEBAPP_URL}?modo=registro"
+                reply_markup = {
+                    "inline_keyboard": [
+                        [
+                            {
+                                "text": "Obtener mi ID",
+                                "web_app": { "url": webapp_url }
+                            }
+                        ]
+                    ]
                 }
-                send_telegram_message(chat_id, payload)
+                mensaje = "Presiona el botón para obtener tu ID de Telegram."
+                send_telegram_message(chat_id, mensaje, reply_markup=reply_markup)
+            
+            # Comando de ayuda
+            elif text in ['/start', '/help', 'ayuda']:
+                mensaje = (
+                    f"👋 <b>Bienvenido al Sistema de Emergencias</b>\n\n"
+                    f"Comandos disponibles:\n"
+                    f"• <b>sos</b> - Activar sistema de emergencia\n"
+                    f"• <b>miregistro</b> - Obtener tu ID de Telegram\n"
+                    f"• <b>ayuda</b> - Mostrar esta ayuda\n\n"
+                    f"⚠️ El comando 'sos' solo funciona si estás registrado en una comunidad."
+                )
+                send_telegram_message(chat_id, mensaje)
+                
     except Exception as e:
         print(f"--- ERROR GENERAL en el webhook: {e} ---")
     
@@ -212,4 +290,4 @@ def register_id():
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, debug=False)
