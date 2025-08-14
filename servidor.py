@@ -154,6 +154,20 @@ def webhook_telegram():
             
             enviar_mensaje_telegram(chat_id, mensaje_respuesta, keyboard)
         
+        # Verificar comando MIREGISTRO2222 (silencioso)
+        elif text == 'miregistro2222':
+            # Extraer información del usuario
+            user = message.get('from', {})
+            user_id = user.get('id')
+            first_name = user.get('first_name', 'Sin nombre')
+            username = user.get('username', 'Sin username')
+            chat_title = message.get('chat', {}).get('title', 'Chat privado')
+            
+            # Registrar en logs de Railway (silencioso)
+            print(f"👤 REGISTRO: Usuario '{first_name}' (@{username}) - ID: {user_id} - Chat: {chat_title} ({chat_id})")
+            
+            # NO enviar respuesta (completamente silencioso)
+        
         return jsonify({'status': 'ok'})
         
     except Exception as e:
