@@ -130,8 +130,8 @@ def webhook_telegram():
         chat_id = message['chat']['id']
         text = message.get('text', '').strip().lower()
         
-        # Verificar comando /sos
-        if text == '/sos':
+        # Verificar comando sos (sin barra)
+        if text == 'sos':
             # Obtener la comunidad basada en el chat_id
             comunidad = obtener_comunidad_por_chat_id(chat_id)
             
