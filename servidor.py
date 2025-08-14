@@ -150,7 +150,7 @@ def webhook_telegram():
                 ]]
             }
             
-            mensaje_respuesta = f"🚨 <b>BOTÓN DE EMERGENCIA</b> 🚨\n\n🏘️ <b>Comunidad:</b> {comunidad.upper()}\n\n👆 Presiona el botón para activar la alerta de emergencia."
+            mensaje_respuesta = "🚨"
             
             enviar_mensaje_telegram(chat_id, mensaje_respuesta, keyboard)
         
