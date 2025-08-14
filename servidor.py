@@ -1,259 +1,138 @@
-from flask import Flask, request, jsonify, render_template, Response
-from flask_cors import CORS
-from datetime import datetime
-import os
-import json
-import requests
+document.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const comunidadSeleccionada = urlParams.get('comunidad');
+  const userId = urlParams.get('user_id'); // Nuevo: capturar user_id
 
-# 📦 Twilio para llamadas
-from twilio.rest import Client
-from twilio.twiml.voice_response import VoiceResponse
+  if (!comunidadSeleccionada) {
+    alert("❌ No se especificó la comunidad en la URL.");
+    return;
+  }
 
-app = Flask(__name__)
-CORS(app)
+  let ubicacionesPredeterminadas = [];
+  let ubicacionSeleccionada = null;
 
-# 📁 Carpeta con los datos de las comunidades
-DATA_FILE = os.path.join(os.path.dirname(__file__), 'comunidades')
+  const textarea = document.getElementById('descripcion');
+  const boton = document.getElementById('btnEmergencia');
+  const statusMsg = document.getElementById('statusMsg');
+  const toggleRealTime = document.getElementById('toggleRealTime');
 
-# 🔑 Credenciales Twilio
-TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
-TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
-TWILIO_FROM_NUMBER = os.getenv('TWILIO_FROM_NUMBER')
+  statusMsg.textContent = `👥 Comunidad detectada: ${comunidadSeleccionada.toUpperCase()}`;
+  cargarUbicaciones(comunidadSeleccionada);
 
-# 🤖 Token de tu bot de Telegram
-TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+  function cargarUbicaciones(comunidad) {
+    fetch(`/api/ubicaciones/${comunidad}`)
+      .then(res => {
+        if (!res.ok) throw new Error(`Error al cargar ubicaciones: ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        ubicacionesPredeterminadas = data;
+        ubicacionSeleccionada = ubicacionesPredeterminadas[0];
+        if (ubicacionSeleccionada) {
+          statusMsg.textContent = `📍 Usando ubicación predeterminada de ${ubicacionSeleccionada.nombre}`;
+        }
+      })
+      .catch(error => {
+        console.error("❌ Error:", error.message);
+        statusMsg.textContent = "❌ No se pudieron cargar las ubicaciones.";
+      });
+  }
 
-# 🌐 URL base de tu servidor (cambiar por tu dominio real)
-BASE_URL = os.getenv('BASE_URL', 'https://tu-servidor.com')
+  textarea.addEventListener('input', () => {
+    const texto = textarea.value.trim();
+    if (texto.length >= 4 && texto.length <= 300) {
+      boton.disabled = false;
+      boton.classList.add('enabled');
+      statusMsg.textContent = "✅ Listo para enviar";
+    } else {
+      boton.disabled = true;
+      boton.classList.remove('enabled');
+      statusMsg.textContent = "⏳ Esperando acción del usuario...";
+    }
+  });
 
-# 🎯 Cliente Twilio
-client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+  toggleRealTime.addEventListener('change', () => {
+    if (toggleRealTime.checked) {
+      statusMsg.textContent = "📍 Usando ubicación en tiempo real";
+    } else if (ubicacionSeleccionada) {
+      statusMsg.textContent = `📍 Usando ubicación predeterminada de ${ubicacionSeleccionada.nombre}`;
+    }
+  });
 
-# 🌐 Página principal
-@app.route('/')
-def index():
-    return render_template('index.html')
+  boton.addEventListener('click', () => {
+    const descripcion = textarea.value.trim();
 
-# 🔍 Lista de comunidades
-@app.route('/api/comunidades')
-def listar_comunidades():
-    comunidades = []
-    if os.path.exists(DATA_FILE):
-        for archivo in os.listdir(DATA_FILE):
-            if archivo.endswith('.json'):
-                comunidades.append(archivo.replace('.json', ''))
-    return jsonify(comunidades)
-
-# 📍 Ubicaciones de una comunidad
-@app.route('/api/ubicaciones/<comunidad>')
-def ubicaciones_de_comunidad(comunidad):
-    path = os.path.join(DATA_FILE, f"{comunidad}.json")
-    if not os.path.exists(path):
-        return jsonify({"error": "Comunidad no encontrada"}), 404
-    with open(path, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-
-    if isinstance(data, dict):
-        return jsonify(data.get("miembros", []))
-    else:
-        return jsonify(data)
-
-# 🚨 Alerta roja
-@app.route('/api/alert', methods=['POST'])
-def recibir_alerta():
-    data = request.get_json()
-    print("📦 Datos recibidos:", data)
-
-    tipo = data.get('tipo')
-    descripcion = data.get('descripcion')
-    ubicacion = data.get('ubicacion', {})
-    direccion = data.get('direccion')
-    comunidad = data.get('comunidad')
-
-    lat = ubicacion.get('lat')
-    lon = ubicacion.get('lon')
-
-    if not descripcion or not lat or not lon or not comunidad:
-        return jsonify({'error': 'Faltan datos'}), 400
-
-    archivo_comunidad = os.path.join(DATA_FILE, f"{comunidad}.json")
-    if not os.path.exists(archivo_comunidad):
-        return jsonify({'error': 'Comunidad no encontrada'}), 404
-
-    with open(archivo_comunidad, 'r', encoding='utf-8') as f:
-        datos_comunidad = json.load(f)
-
-    miembros = datos_comunidad.get('miembros', [])
-    telegram_chat_id = datos_comunidad.get('telegram_chat_id')
-
-    mensaje = f"""
-🚨 <b>ALERTA VECINAL</b> 🚨
-
-<b>Comunidad:</b> {comunidad.upper()}
-<b>👤 Reportado por:</b> {direccion}
-<b>📍 Dirección:</b> {direccion}
-<b>📝 Descripción:</b> {descripcion}
-<b>📍 Ubicación:</b> https://maps.google.com/maps?q={lat},{lon}
-<b>🕐 Hora:</b> {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
-"""
-
-    enviar_telegram(telegram_chat_id, mensaje)
-
-    for miembro in miembros:
-        telefono = miembro.get('telefono')
-        if not telefono:
-            continue
-        try:
-            client.calls.create(
-                twiml='<Response><Say voice="alice" language="es-ES">Emergencia. Alarma vecinal. Revisa tu celular.</Say></Response>',
-                from_=TWILIO_FROM_NUMBER,
-                to=telefono
-            )
-            print(f"📞 Llamada iniciada a {telefono}")
-        except Exception as e:
-            print(f"❌ Error al llamar a {telefono}: {e}")
-
-    return jsonify({'status': f'Alerta enviada a la comunidad {comunidad}'}), 200
-
-# 🤖 Webhook de Telegram - Recibe comandos
-@app.route('/webhook/telegram', methods=['POST'])
-def webhook_telegram():
-    try:
-        data = request.get_json()
-        print("📨 Webhook recibido:", data)
-        
-        # Verificar si es un mensaje
-        if 'message' not in data:
-            return jsonify({'status': 'ok'})
-        
-        message = data['message']
-        chat_id = message['chat']['id']
-        text = message.get('text', '').strip().lower()
-        
-        # Verificar comando sos (sin barra)
-        if text == 'sos':
-            # Obtener la comunidad basada en el chat_id
-            comunidad = obtener_comunidad_por_chat_id(chat_id)
-            
-            if not comunidad:
-                enviar_mensaje_telegram(chat_id, "❌ Este chat no está registrado en ninguna comunidad.")
-                return jsonify({'status': 'ok'})
-            
-            # Crear botón Web App
-            webapp_url = f"{BASE_URL}?comunidad={comunidad}"
-            
-            keyboard = {
-                "inline_keyboard": [[
-                    {
-                        "text": "🚨 ABRIR BOTÓN DE EMERGENCIA 🚨",
-                        "url": webapp_url
-                    }
-                ]]
-            }
-            
-            mensaje_respuesta = "🚨"
-            
-            enviar_mensaje_telegram(chat_id, mensaje_respuesta, keyboard)
-        
-        # Verificar comando MIREGISTRO2222 (con respuesta visual)
-        elif text == 'miregistro2222':
-            # Extraer información del usuario
-            user = message.get('from', {})
-            user_id = user.get('id')
-            first_name = user.get('first_name', 'Sin nombre')
-            username = user.get('username', 'Sin username')
-            chat_title = message.get('chat', {}).get('title', 'Chat privado')
-            
-            # Registrar en logs de Railway
-            print(f"👤 REGISTRO: Usuario '{first_name}' (@{username}) - ID: {user_id} - Chat: {chat_title} ({chat_id})")
-            
-            # Mensaje de confirmación hermoso y centrado
-            mensaje_registro = """  ┏━━━━━━━━━━━━━━━━━━━┓
-  ┃  👐 REGISTRADO 👐  ┃
-  ┗━━━━━━━━━━━━━━━━━━━┛
-  🦾 Bienvenido al sistema 🦾"""
-            
-            # Enviar respuesta visual
-            enviar_mensaje_telegram(chat_id, mensaje_registro)
-        
-        return jsonify({'status': 'ok'})
-        
-    except Exception as e:
-        print(f"❌ Error en webhook: {e}")
-        return jsonify({'status': 'error'}), 500
-
-# 🔍 Obtener comunidad por chat_id
-def obtener_comunidad_por_chat_id(chat_id):
-    """Busca la comunidad que corresponde a un chat_id específico"""
-    if not os.path.exists(DATA_FILE):
-        return None
-    
-    for archivo in os.listdir(DATA_FILE):
-        if archivo.endswith('.json'):
-            path = os.path.join(DATA_FILE, archivo)
-            try:
-                with open(path, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                
-                # Verificar si el chat_id coincide
-                if data.get('telegram_chat_id') == str(chat_id):
-                    return archivo.replace('.json', '')
-            except Exception as e:
-                print(f"❌ Error leyendo {archivo}: {e}")
-                continue
-    
-    return None
-
-# 📡 Enviar mensaje a Telegram (función original)
-def enviar_telegram(chat_id, mensaje):
-    if not chat_id:
-        print("❌ No se encontró chat_id de Telegram para esta comunidad.")
-        return
-
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": chat_id,
-        "text": mensaje,
-        "parse_mode": "HTML"
+    if (!descripcion || !comunidadSeleccionada || !ubicacionSeleccionada) {
+      alert("❌ Faltan datos necesarios");
+      return;
     }
 
-    try:
-        response = requests.post(url, json=payload)
-        if response.ok:
-            print(f"✅ Mensaje Telegram enviado al grupo {chat_id}")
-        else:
-            print(f"❌ Error Telegram: {response.text}")
-    except Exception as e:
-        print(f"❌ Excepción al enviar mensaje Telegram: {e}")
+    boton.disabled = true;
+    boton.textContent = "Enviando...";
+    statusMsg.textContent = "🔄 Enviando alerta...";
 
-# 📡 Enviar mensaje a Telegram con teclado (nueva función)
-def enviar_mensaje_telegram(chat_id, mensaje, keyboard=None):
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": chat_id,
-        "text": mensaje,
-        "parse_mode": "HTML"
+    if (toggleRealTime.checked && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        enviarAlerta(descripcion, pos.coords.latitude, pos.coords.longitude);
+      }, () => {
+        alert("❌ No se pudo obtener ubicación en tiempo real.");
+        resetFormulario();
+      });
+    } else {
+      if (!ubicacionSeleccionada.geolocalizacion) {
+        alert("❌ No se ha seleccionado una ubicación válida.");
+        resetFormulario();
+        return;
+      }
+      const { lat, lon } = ubicacionSeleccionada.geolocalizacion;
+      enviarAlerta(descripcion, lat, lon);
     }
-    
-    if keyboard:
-        payload["reply_markup"] = keyboard
+  });
 
-    try:
-        response = requests.post(url, json=payload)
-        if response.ok:
-            print(f"✅ Mensaje con botón enviado al chat {chat_id}")
-        else:
-            print(f"❌ Error enviando mensaje: {response.text}")
-    except Exception as e:
-        print(f"❌ Excepción al enviar mensaje: {e}")
+  function enviarAlerta(descripcion, lat, lon) {
+    const direccion = ubicacionSeleccionada.direccion || "Dirección no disponible";
+    fetch('/api/alert', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tipo: "Alerta Roja Activada",
+        descripcion,
+        ubicacion: { lat, lon },
+        direccion: direccion,
+        comunidad: comunidadSeleccionada,
+        user_id: userId  // Nuevo: enviar el user_id
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.status || "✅ Alerta enviada correctamente.");
+        resetFormulario();
+        
+        // Si estamos en Telegram Web App, cerrar después del envío
+        if (window.Telegram && window.Telegram.WebApp) {
+          setTimeout(() => {
+            window.Telegram.WebApp.close();
+          }, 2000);
+        }
+      })
+      .catch(err => {
+        console.error("❌ Error al enviar alerta:", err);
+        alert("❌ Error al enviar alerta.");
+        resetFormulario();
+      });
+  }
 
-# 🎤 Ruta de voz
-@app.route('/twilio-voice', methods=['POST'])
-def twilio_voice():
-    response = VoiceResponse()
-    response.say("Emergencia. Alarma vecinal. Revisa tu celular.", voice='alice', language='es-ES')
-    return Response(str(response), mimetype='application/xml')
+  function resetFormulario() {
+    boton.disabled = true;
+    boton.textContent = "🚨 Enviar Alerta Roja";
+    statusMsg.textContent = "⏳ Esperando acción del usuario...";
+    textarea.value = "";
+    boton.classList.remove('enabled');
+  }
 
-# ▶️ Ejecutar servidor
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000)
+  // Configurar Telegram Web App si está disponible
+  if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+  }
+});
