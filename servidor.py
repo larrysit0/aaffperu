@@ -90,9 +90,10 @@ def recibir_alerta():
 🚨 <b>ALERTA VECINAL</b> 🚨
 
 <b>Comunidad:</b> {comunidad.upper()}
-<b>Dirección:</b> {direccion}
-<b>Descripción:</b> {descripcion}
-<b>Ubicación:</b> <a href="https://www.google.com/maps?q={lat},{lon}">Ver en Google Maps</a>
+<b>👤 Reportado por:</b> {direccion}
+<b>📍 Dirección:</b> {direccion}
+<b>📝 Descripción:</b> {descripcion}
+<b>📍 Ubicación:</b> https://maps.google.com/maps?q={lat},{lon}
 <b>🕐 Hora:</b> {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
 """
 
