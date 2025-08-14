@@ -24,7 +24,7 @@ TWILIO_FROM_NUMBER = os.getenv('TWILIO_FROM_NUMBER')
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 
 # 🌐 URL base de tu servidor (cambiar por tu dominio real)
-BASE_URL = os.getenv('BASE_URL', 'https://tu-servidor.com')
+BASE_URL = os.getenv('BASE_URL', 'https://aaffperu-production.up.railway.app/')
 
 # 🎯 Cliente Twilio
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
