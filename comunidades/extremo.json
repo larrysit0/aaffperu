@@ -1,0 +1,33 @@
+{
+  "nombre": "Ejemplo Comunidad",
+  "telegram_chat_id": "-1001234567890",
+  "miembros": [
+    {
+      "nombre": "Juan Pérez",
+      "telefono": "+51987654321",
+      "direccion": "Av. Principal 123",
+      "geolocalizacion": {
+        "lat": -12.0464,
+        "lon": -77.0428
+      }
+    },
+    {
+      "nombre": "María García",
+      "telefono": "+51987654322",
+      "direccion": "Av. Principal 124",
+      "geolocalizacion": {
+        "lat": -12.0465,
+        "lon": -77.0429
+      }
+    },
+    {
+      "nombre": "Carlos López",
+      "telefono": "+51987654323",
+      "direccion": "Av. Principal 125",
+      "geolocalizacion": {
+        "lat": -12.0466,
+        "lon": -77.0430
+      }
+    }
+  ]
+}
