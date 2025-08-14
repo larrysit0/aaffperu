@@ -1,32 +1,45 @@
 {
-  "nombre": "villa",
+  "nombre": "Villa",
   "telegram_chat_id": "-1002525690225",
   "miembros": [
     {
       "nombre": "Jhonny fernandez",
-      "telefono": "+519929145876",
-      "direccion": "Av. secundaria 123",
+      "telegram_id": "1667177404",
+      "telefono": "+51929145876",
+      "direccion": "Av. Principal 123, Villa - Lima",
       "geolocalizacion": {
         "lat": -12.0464,
         "lon": -77.0428
       }
     },
     {
-      "nombre": "Larry ortiz",
-      "telefono": "+51960661434",
-      "direccion": "Av. Principal 12124",
+      "nombre": "irene fernandez",
+      "telegram_id": "1234567890",
+      "telefono": "+51980516446",
+      "direccion": "Jr. Los Olivos 456, Villa - Lima",
       "geolocalizacion": {
         "lat": -12.0465,
         "lon": -77.0429
       }
     },
     {
-      "nombre": "Irene fernandez",
-      "telefono": "+51980516446",
-      "direccion": "Av. Pastoral 885",
+      "nombre": "larry ortiz",
+      "telegram_id": "9876543210",
+      "telefono": "+51960661434",
+      "direccion": "Av. Las Flores 789, Villa - Lima",
       "geolocalizacion": {
         "lat": -12.0466,
         "lon": -77.0430
+      }
+    },
+    {
+      "nombre": "olinda pinto",
+      "telegram_id": "5555666777",
+      "telefono": "+51991363320",
+      "direccion": "Calle San Martín 321, Villa - Lima",
+      "geolocalizacion": {
+        "lat": -12.0467,
+        "lon": -77.0431
       }
     }
   ]
