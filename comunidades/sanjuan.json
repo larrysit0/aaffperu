@@ -1,50 +1,46 @@
-
 {
-  "chat_id": "-1002735693923",
+  "nombre": "sanjuan",
+  "telegram_chat_id": "-1002513567615",
   "miembros": [
     {
-      "nombre": "Olinda Pinto",
-      "telefono": "+51991363320",
-      "direccion": "Av. Principal 101",
-      "alertas_activadas": true,
+      "nombre": "Jhonny fernandez",
+      "telegram_id": "1579324364",
+      "telefono": "+51929145876",
+      "direccion": "Av. Principal 123, Villa - Lima",
       "geolocalizacion": {
         "lat": -12.0464,
         "lon": -77.0428
-      },
-      "telegram_id": 7851766215
+      }
     },
     {
-      "nombre": "Larry ortiz",
-      "telefono": "+51960661434",
-      "direccion": "Calle Secundaria 202",
-      "alertas_activadas": true,
-      "geolocalizacion": {
-        "lat": -12.0456,
-        "lon": -77.0333
-      },
-      "telegram_id": 1667177404
-    },
-    {
-      "nombre": "Jhonny firnandiz",
-      "telefono": "+51929145876",
-      "direccion": "Pasaje Mirador 303",
-      "alertas_activadas": true,
-      "geolocalizacion": {
-        "lat": -12.0470,
-        "lon": -77.0400
-      },
-      "telegram_id": 1579324364
-    },
-    {
-      "nombre": "Irene Fernandez",
+      "nombre": "irene fernandez",
+      "telegram_id": "1926559823",
       "telefono": "+51980516446",
-      "direccion": "Jirón Paz 404",
-      "alertas_activadas": true,
+      "direccion": "Jr. Los Olivos 456, Villa - Lima",
       "geolocalizacion": {
-        "lat": -12.0488,
-        "lon": -77.0381
-      },
-      "telegram_id": 1926559823
+        "lat": -12.0465,
+        "lon": -77.0429
+      }
+    },
+    {
+      "nombre": "larry ortiz",
+      "telegram_id": "1667177404",
+      "telefono": "+51960661434",
+      "direccion": "Av. Las Flores 789, Villa - Lima",
+      "geolocalizacion": {
+        "lat": -12.0466,
+        "lon": -77.0430
+      }
+    },
+    {
+      "nombre": "olinda pinto",
+      "telegram_id": "7851766215",
+      "telefono": "+51991363320",
+      "direccion": "Calle San Martín 321, Villa - Lima",
+      "geolocalizacion": {
+        "lat": -12.0467,
+        "lon": -77.0431
+      }
     }
   ]
 }
