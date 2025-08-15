@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
   const comunidadSeleccionada = urlParams.get('comunidad');
+  const telegramUserId = urlParams.get('user_id'); // 🎯 Nuevo: capturar user_id
 
   if (!comunidadSeleccionada) {
     alert("❌ No se especificó la comunidad en la URL.");
@@ -15,7 +16,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusMsg = document.getElementById('statusMsg');
   const toggleRealTime = document.getElementById('toggleRealTime');
 
-  statusMsg.textContent = `👥 Comunidad detectada: ${comunidadSeleccionada.toUpperCase()}`;
+  // 🎯 Mostrar información del usuario si está disponible
+  if (telegramUserId) {
+    statusMsg.textContent = `👥 Comunidad: ${comunidadSeleccionada.toUpperCase()} | Usuario ID: ${telegramUserId}`;
+  } else {
+    statusMsg.textContent = `👥 Comunidad detectada: ${comunidadSeleccionada.toUpperCase()}`;
+  }
+  
   cargarUbicaciones(comunidadSeleccionada);
 
   function cargarUbicaciones(comunidad) {
@@ -26,9 +33,31 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .then(data => {
         ubicacionesPredeterminadas = data;
-        ubicacionSeleccionada = ubicacionesPredeterminadas[0];
-        if (ubicacionSeleccionada) {
-          statusMsg.textContent = `📍 Usando ubicación predeterminada de ${ubicacionSeleccionada.nombre}`;
+        
+        // 🎯 BUSCAR LA UBICACIÓN DEL USUARIO ESPECÍFICO
+        if (telegramUserId) {
+          const usuarioEspecifico = data.find(miembro => 
+            String(miembro.telegram_id) === String(telegramUserId)
+          );
+          
+          if (usuarioEspecifico) {
+            ubicacionSeleccionada = usuarioEspecifico;
+            statusMsg.textContent = `📍 Usuario: ${usuarioEspecifico.nombre} - ${usuarioEspecifico.direccion}`;
+            console.log(`👤 Usuario identificado: ${usuarioEspecifico.nombre}`);
+          } else {
+            // Si no se encuentra el usuario específico, usar el primer miembro
+            ubicacionSeleccionada = ubicacionesPredeterminadas[0];
+            console.warn("⚠️ Usuario no encontrado en el JSON, usando fallback");
+            if (ubicacionSeleccionada) {
+              statusMsg.textContent = `📍 Usando ubicación predeterminada de ${ubicacionSeleccionada.nombre}`;
+            }
+          }
+        } else {
+          // Sin user_id, usar el primer miembro
+          ubicacionSeleccionada = ubicacionesPredeterminadas[0];
+          if (ubicacionSeleccionada) {
+            statusMsg.textContent = `📍 Usando ubicación predeterminada de ${ubicacionSeleccionada.nombre}`;
+          }
         }
       })
       .catch(error => {
@@ -42,7 +71,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (texto.length >= 4 && texto.length <= 300) {
       boton.disabled = false;
       boton.classList.add('enabled');
-      statusMsg.textContent = "✅ Listo para enviar";
+      if (ubicacionSeleccionada) {
+        statusMsg.textContent = `✅ Listo para enviar (${ubicacionSeleccionada.nombre})`;
+      } else {
+        statusMsg.textContent = "✅ Listo para enviar";
+      }
     } else {
       boton.disabled = true;
       boton.classList.remove('enabled');
@@ -54,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (toggleRealTime.checked) {
       statusMsg.textContent = "📍 Usando ubicación en tiempo real";
     } else if (ubicacionSeleccionada) {
-      statusMsg.textContent = `📍 Usando ubicación predeterminada de ${ubicacionSeleccionada.nombre}`;
+      statusMsg.textContent = `📍 Usuario: ${ubicacionSeleccionada.nombre} - ${ubicacionSeleccionada.direccion}`;
     }
   });
 
@@ -72,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (toggleRealTime.checked && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(pos => {
-        enviarAlerta(descripcion, pos.coords.latitude, pos.coords.longitude);
+        enviarAlerta(descripcion, pos.coords.latitude, pos.coords.longitude, true);
       }, () => {
         alert("❌ No se pudo obtener ubicación en tiempo real.");
         resetFormulario();
@@ -84,22 +117,34 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       const { lat, lon } = ubicacionSeleccionada.geolocalizacion;
-      enviarAlerta(descripcion, lat, lon);
+      enviarAlerta(descripcion, lat, lon, false);
     }
   });
 
-  function enviarAlerta(descripcion, lat, lon) {
+  function enviarAlerta(descripcion, lat, lon, esUbicacionTiempoReal) {
     const direccion = ubicacionSeleccionada.direccion || "Dirección no disponible";
+    
+    // 🎯 Preparar el payload con toda la información necesaria
+    const payload = {
+      tipo: "Alerta Roja Activada",
+      descripcion,
+      ubicacion: { lat, lon },
+      direccion: direccion,
+      comunidad: comunidadSeleccionada,
+      ubicacion_tiempo_real: esUbicacionTiempoReal
+    };
+
+    // 🎯 Agregar telegram_user_id si está disponible
+    if (telegramUserId) {
+      payload.telegram_user_id = telegramUserId;
+    }
+
+    console.log("📦 Enviando payload:", payload);
+
     fetch('/api/alert', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        tipo: "Alerta Roja Activada",
-        descripcion,
-        ubicacion: { lat, lon },
-        direccion: direccion,
-        comunidad: comunidadSeleccionada
-      })
+      body: JSON.stringify(payload)
     })
       .then(res => res.json())
       .then(data => {
