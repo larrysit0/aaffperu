@@ -29,6 +29,9 @@ BASE_URL = os.getenv('BASE_URL', 'https://tu-servidor.com')
 # 🎯 Cliente Twilio
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
+# 📝 Diccionario temporal para almacenar el usuario que activó SOS
+usuarios_sos_activos = {}
+
 # 🌐 Página principal
 @app.route('/')
 def index():
@@ -69,6 +72,8 @@ def recibir_alerta():
     ubicacion = data.get('ubicacion', {})
     direccion = data.get('direccion')
     comunidad = data.get('comunidad')
+    # Nuevo: obtener el telegram_user_id si está disponible
+    telegram_user_id = data.get('telegram_user_id')
 
     lat = ubicacion.get('lat')
     lon = ubicacion.get('lon')
@@ -86,12 +91,55 @@ def recibir_alerta():
     miembros = datos_comunidad.get('miembros', [])
     telegram_chat_id = datos_comunidad.get('telegram_chat_id')
 
+    # 🎯 AQUÍ ESTÁ LA CORRECCIÓN: Buscar al miembro específico
+    miembro_reportante = None
+    
+    # Prioridad 1: Si tenemos telegram_user_id, buscar por ese ID
+    if telegram_user_id:
+        for miembro in miembros:
+            if str(miembro.get('telegram_id')) == str(telegram_user_id):
+                miembro_reportante = miembro
+                print(f"👤 Usuario encontrado por Telegram ID: {miembro['nombre']}")
+                break
+    
+    # Prioridad 2: Si no hay telegram_user_id, buscar en usuarios_sos_activos
+    if not miembro_reportante and comunidad in usuarios_sos_activos:
+        user_id_sos = usuarios_sos_activos[comunidad]
+        for miembro in miembros:
+            if str(miembro.get('telegram_id')) == str(user_id_sos):
+                miembro_reportante = miembro
+                print(f"👤 Usuario encontrado por SOS activo: {miembro['nombre']}")
+                # Limpiar el registro después de usar
+                del usuarios_sos_activos[comunidad]
+                break
+    
+    # Si no encontramos al usuario específico, usar el primer miembro como fallback
+    if not miembro_reportante and miembros:
+        miembro_reportante = miembros[0]
+        print("⚠️ No se pudo identificar al usuario específico, usando el primer miembro como fallback")
+    
+    # Usar los datos del miembro reportante
+    if miembro_reportante:
+        nombre_reportante = miembro_reportante.get('nombre', 'Usuario desconocido')
+        direccion_reportante = miembro_reportante.get('direccion', direccion or 'Dirección no disponible')
+        
+        # Si están usando ubicación en tiempo real, mantener lat/lon recibidos
+        # Si no, usar la ubicación predeterminada del miembro
+        if not data.get('ubicacion_tiempo_real', False):
+            geo_miembro = miembro_reportante.get('geolocalizacion', {})
+            if geo_miembro:
+                lat = geo_miembro.get('lat', lat)
+                lon = geo_miembro.get('lon', lon)
+    else:
+        nombre_reportante = 'Usuario desconocido'
+        direccion_reportante = direccion or 'Dirección no disponible'
+
     mensaje = f"""
 🚨 <b>ALERTA VECINAL</b> 🚨
 
 <b>Comunidad:</b> {comunidad.upper()}
-<b>👤 Reportado por:</b> {direccion}
-<b>📍 Dirección:</b> {direccion}
+<b>👤 Reportado por:</b> {nombre_reportante}
+<b>📍 Dirección:</b> {direccion_reportante}
 <b>📝 Descripción:</b> {descripcion}
 <b>📍 Ubicación:</b> https://maps.google.com/maps?q={lat},{lon}
 <b>🕐 Hora:</b> {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
@@ -99,6 +147,7 @@ def recibir_alerta():
 
     enviar_telegram(telegram_chat_id, mensaje)
 
+    # Llamar a todos los miembros
     for miembro in miembros:
         telefono = miembro.get('telefono')
         if not telefono:
@@ -130,6 +179,12 @@ def webhook_telegram():
         chat_id = message['chat']['id']
         text = message.get('text', '').strip().lower()
         
+        # Obtener información del usuario
+        user = message.get('from', {})
+        user_id = user.get('id')
+        first_name = user.get('first_name', 'Sin nombre')
+        username = user.get('username', 'Sin username')
+        
         # Verificar comando sos (sin barra)
         if text == 'sos':
             # Obtener la comunidad basada en el chat_id
@@ -139,8 +194,12 @@ def webhook_telegram():
                 enviar_mensaje_telegram(chat_id, "❌ Este chat no está registrado en ninguna comunidad.")
                 return jsonify({'status': 'ok'})
             
-            # Crear botón Web App
-            webapp_url = f"{BASE_URL}?comunidad={comunidad}"
+            # 🎯 GUARDAR EL USER_ID que activó SOS
+            usuarios_sos_activos[comunidad] = user_id
+            print(f"👤 SOS activado por usuario {first_name} (ID: {user_id}) en comunidad {comunidad}")
+            
+            # Crear botón Web App con el user_id incluido
+            webapp_url = f"{BASE_URL}?comunidad={comunidad}&user_id={user_id}"
             
             keyboard = {
                 "inline_keyboard": [[
@@ -157,15 +216,8 @@ def webhook_telegram():
         
         # Verificar comando MIREGISTRO2222 (con respuesta visual)
         elif text == 'miregistro2222':
-            # Extraer información del usuario
-            user = message.get('from', {})
-            user_id = user.get('id')
-            first_name = user.get('first_name', 'Sin nombre')
-            username = user.get('username', 'Sin username')
-            chat_title = message.get('chat', {}).get('title', 'Chat privado')
-            
             # Registrar en logs de Railway
-            print(f"👤 REGISTRO: Usuario '{first_name}' (@{username}) - ID: {user_id} - Chat: {chat_title} ({chat_id})")
+            print(f"👤 REGISTRO: Usuario '{first_name}' (@{username}) - ID: {user_id} - Chat: {message.get('chat', {}).get('title', 'Chat privado')} ({chat_id})")
             
             # Mensaje de confirmación hermoso y centrado
             mensaje_registro = """  ┏━━━━━━━━━━━━━━━━━━━┓
