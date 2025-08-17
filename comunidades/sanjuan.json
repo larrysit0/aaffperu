@@ -3,16 +3,6 @@
   "telegram_chat_id": "-1002513567615",
   "miembros": [
     {
-      "nombre": "Jhonny fernandez",
-      "telegram_id": "1579324364",
-      "telefono": "+51929145876",
-      "direccion": "Av. Principal 123, Villa - Lima",
-      "geolocalizacion": {
-        "lat": -12.0464,
-        "lon": -77.0428
-      }
-    },
-    {
       "nombre": "irene fernandez",
       "telegram_id": "1926559823",
       "telefono": "+51980516446",
@@ -30,16 +20,6 @@
       "geolocalizacion": {
         "lat": -12.0466,
         "lon": -77.0430
-      }
-    },
-    {
-      "nombre": "olinda pinto",
-      "telegram_id": "7851766215",
-      "telefono": "+51991363320",
-      "direccion": "Calle San Martín 321, Villa - Lima",
-      "geolocalizacion": {
-        "lat": -12.0467,
-        "lon": -77.0431
       }
     }
   ]
