@@ -1,0 +1,56 @@
+{
+  "nombre": "000-cinco",
+  "telegram_chat_id": "-1002773966470",
+  "miembros": [
+    {
+      "nombre": "Carlos “El Colchón” Tapia",
+      "telegram_id": "1000000001",
+      "telefono": "+51912345678",
+      "direccion": "Malecón de la Risa 999, Miraflores – Lima",
+      "geolocalizacion": {
+        "lat": -12.1314,
+        "lon": -77.0296
+      }
+    },
+    {
+      "nombre": "Ana “Dormilona” Pérez",
+      "telegram_id": "1000000002",
+      "telefono": "+51987654321",
+      "direccion": "Calle Los Eucaliptos 555, San Isidro – Lima",
+        "geolocalizacion": {
+        "lat": -12.1070,
+        "lon": -77.0330
+      }
+    },
+    {
+      "nombre": "Luis “Bufé” Gómez",
+      "telegram_id": "1000000003",
+      "telefono": "+51911223344",
+      "direccion": "Calle Atahualpa 155, Miraflores – Lima",
+      "geolocalizacion": {
+        "lat": -12.1185,
+        "lon": -77.0304
+      }
+    },
+    {
+      "nombre": "María “Recepción” Soto",
+      "telegram_id": "1000000004",
+      "telefono": "+51955667788",
+      "direccion": "Malecón de la Reserva 615, Miraflores – Lima",
+      "geolocalizacion": {
+        "lat": -12.1308,
+        "lon": -77.0296
+      }
+    },
+    {
+      "nombre": "Jorge “Spa” Villanueva",
+      "telegram_id": "1000000005",
+      "telefono": "+51966778899",
+      "direccion": "Av. Principal 123, Centro – Lima",
+      "geolocalizacion": {
+        "lat": -12.0464,
+        "lon": -77.0428
+      }
+    }
+  ]
+}
