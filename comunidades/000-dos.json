@@ -1,0 +1,26 @@
+{
+  "nombre": "000-cuatro",
+  "telegram_chat_id": "-1002886664361",
+  "miembros": [
+    {
+      "nombre": "Pedro “Almohada” Ramírez",
+      "telegram_id": "2000000001",
+      "telefono": "+51912340001",
+      "direccion": "Paseo de la República 170, Lima – Perú (Sheraton Lima Historic Center)",
+      "geolocalizacion": {
+        "lat": -12.0573,
+        "lon": -77.0369
+      }
+    },
+    {
+      "nombre": "Lucía “Jacuzzi” Fernández",
+      "telegram_id": "2000000002",
+      "telefono": "+51912340002",
+      "direccion": "Malecón de la Reserva 615, Miraflores – Lima (JW Marriott Hotel Lima)",
+      "geolocalizacion": {
+        "lat": -12.1308,
+        "lon": -77.0296
+      }
+    }
+  ]
+}
