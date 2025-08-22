@@ -3,23 +3,23 @@
   "telegram_chat_id": "-1002886664361",
   "miembros": [
     {
-      "nombre": "Esteban Torres",
-      "telegram_id": "1029837465",
-      "telefono": "+51997654321",
-      "direccion": "Av. Los Mapaches 999, Villa - Lima",
+      "nombre": "Irene Irma",
+      "telegram_id": "1926559823",
+      "telefono": "+51980516446",
+      "direccion": "Jirón de la Unión 300, Cercado de Lima, Lima, Perú",
       "geolocalizacion": {
-        "lat": -12.0476,
-        "lon": -77.0440
+        "lat": -12.0470,
+        "lon": -77.0310
       }
     },
     {
-      "nombre": "Lucía Cabrera",
-      "telegram_id": "1129384756",
-      "telefono": "+51995432109",
-      "direccion": "Jr. Estrella Fugaz 123, Villa - Lima",
+      "nombre": "Larry ortiz",
+      "telegram_id": "1667177404",
+      "telefono": "+51917226125",
+      "direccion": "Paseo de la República 170, Lima, Perú",
       "geolocalizacion": {
-        "lat": -12.0477,
-        "lon": -77.0441
+        "lat": -12.0573,
+        "lon": -77.0369 
       }
     }
   ]
