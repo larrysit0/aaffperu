@@ -176,7 +176,7 @@ def recibir_alerta():
             
         try:
             client.calls.create(
-                twiml='<Response><Say voice="Polly.Miguel-Neural" language="es-ES">Emergencia. Emergencia. Revisa la notificacion de telegran.</Say></Response>',
+                twiml='<Response><Say voice="Alice" language="es-ES">Emergencia. Emergencia. Revisa la notificacion de telegran.</Say></Response>',
                 from_=TWILIO_FROM_NUMBER,
                 to=telefono
             )
