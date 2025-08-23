@@ -3,6 +3,16 @@
   "telegram_chat_id": "-1002886664361",
   "miembros": [
     {
+      "nombre": "Olinda Pinto",
+      "telegram_id": "7851766215",
+      "telefono": "+51991363320",
+      "direccion": "Jirón de la Unión 300, Cercado de Lima, Lima, Perú",
+      "geolocalizacion": {
+        "lat": -12.0470,
+        "lon": -77.0310
+      }
+    },
+    {
       "nombre": "Irene Irma",
       "telegram_id": "1926559823",
       "telefono": "+51980516446",
